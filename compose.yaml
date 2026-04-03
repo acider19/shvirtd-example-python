@@ -5,7 +5,10 @@ services:
     web:
         depends_on:
             - db
-        image: cr.yandex/crpj7bgsnkev2f05tsv9/python_server:latest
+              #image: cr.yandex/crpj7bgsnkev2f05tsv9/python_server:latest
+        build:
+          context: .
+          dockerfile: Dockerfile.python
         restart: always
         networks:
             backend:
@@ -30,6 +33,7 @@ services:
             MYSQL_DATABASE: ${MYSQL_DATABASE}
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        command: --mysql-native-password=ON
 
 networks:
     backend:
