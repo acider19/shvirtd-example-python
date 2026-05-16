@@ -1,4 +1,4 @@
-# Ручной алгоритм деплоя приложения
+# Руководство по развертыванию приложения
 
 ## 1. Собрать Docker image
 
@@ -71,7 +71,7 @@ ssh student@<vm_public_ip> 'cd ~/app && git pull'
 
 ## 5. Создать `.env` на VM
 
-Файл `.env` не хранится в git, поэтому его нужно создать вручную на VM:
+Файл `.env` не хранится в git, поэтому его нужно создать вручную на VM на основе `.env.example`:
 
 ```text
 APP_IMAGE=cr.yandex/<registry_id>/python_server:latest
@@ -80,8 +80,6 @@ DB_NAME=<database_name>
 DB_USER=<database_user>
 DB_PASSWORD=<database_password>
 ```
-
-Пароль в git не хранить.
 
 ## 6. Скачать image на VM
 
@@ -166,11 +164,3 @@ ssh student@<vm_public_ip> 'cd ~/app && docker compose -f compose.cloud.yaml log
 - у пользователя MDB стоят маленькие лимиты;
 - таблица не создается из-за имени БД с дефисами;
 - порт `80` не открыт в security group.
-
-## 11. Примечания по текущему проекту
-
-- Image пересобран под `linux/amd64`.
-- Nginx переведен с `8090` на `80`.
-- В `main.py` создание таблицы изменено на `CREATE TABLE IF NOT EXISTS requests`, без префикса имени БД.
-- У пользователя MDB сняты лимиты запросов.
-- Проверено, что security group открывает `TCP 80` от `0.0.0.0/0`.
