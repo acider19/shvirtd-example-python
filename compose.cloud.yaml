@@ -1,0 +1,23 @@
+include:
+    - proxy.yaml
+
+services:
+    web:
+        image: ${APP_IMAGE}
+        restart: always
+        networks:
+            backend:
+                ipv4_address: 172.20.0.5
+
+        environment:
+            DB_HOST: ${DB_HOST}
+            DB_USER: ${DB_USER}
+            DB_PASSWORD: ${DB_PASSWORD}
+            DB_NAME: ${DB_NAME}
+
+networks:
+    backend:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 172.20.0.0/24
