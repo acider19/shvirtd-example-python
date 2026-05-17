@@ -2,7 +2,7 @@
 
 ## 1. Сборка Docker image
 
-Собирать под архитектуру VM в Yandex Cloud:
+Сборка под архитектуру VM в Yandex Cloud:
 
 ```bash
 docker build --platform linux/amd64 \
@@ -49,12 +49,6 @@ docker push cr.yandex/<registry_id>/python_server:latest
 
 ```bash
 ssh student@<vm_public_ip> 'docker --version && docker compose version'
-```
-
-Если Compose нет:
-
-```bash
-ssh student@<vm_public_ip> 'sudo apt update && sudo apt install -y docker-compose-v2'
 ```
 
 Склонировать репозиторий приложения на VM:
