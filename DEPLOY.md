@@ -1,6 +1,6 @@
 # Руководство по развертыванию приложения
 
-## 1. Собрать Docker image
+## 1. Сборка Docker image
 
 Собирать под архитектуру VM в Yandex Cloud:
 
@@ -10,7 +10,7 @@ docker build --platform linux/amd64 \
   -t cr.yandex/<registry_id>/python_server:latest .
 ```
 
-## 2. Авторизоваться в Yandex Container Registry локально
+## 2. Авторизация в Yandex Container Registry локально
 
 Это нужно для `docker push` с локальной машины.
 
@@ -37,13 +37,13 @@ echo "<IAM_TOKEN>" | docker login \
   cr.yandex
 ```
 
-## 3. Запушить image
+## 3. Пушить image в Yandex Container Registry
 
 ```bash
 docker push cr.yandex/<registry_id>/python_server:latest
 ```
 
-## 4. Подготовить VM и получить файлы приложения
+## 4. Подготовка VM и скачивание файлов приложения
 
 Проверить Docker и Compose:
 
@@ -69,7 +69,7 @@ ssh student@<vm_public_ip> 'git clone -b ter-sum-proj https://github.com/acider1
 ssh student@<vm_public_ip> 'cd ~/app && git pull'
 ```
 
-## 5. Создать `.env` на VM
+## 5. Создание `.env` для Docker на VM
 
 Файл `.env` не хранится в git, поэтому его нужно создать вручную на VM на основе `.env.example`:
 
@@ -81,7 +81,46 @@ DB_USER=<database_user>
 DB_PASSWORD=<database_password>
 ```
 
-## 6. Скачать image на VM
+Пароль БД хранится в Yandex LockBox. Получить значение ключа `db_password` можно на локальной машине, где настроен `yc` и есть права `lockbox.payloadViewer`.
+
+Посмотреть secret:
+
+```bash
+yc lockbox secret list
+```
+
+Получить пароль по имени secret:
+
+```bash
+yc lockbox payload get \
+  --name mysql_db_password \
+  --key db_password
+```
+
+Если удобнее по ID secret:
+
+```bash
+yc lockbox payload get \
+  --id <lockbox_secret_id> \
+  --key db_password
+```
+
+`<lockbox_secret_id>` можно взять из output проекта `lockbox`:
+
+```bash
+cd ../ter-sum-proj/lockbox
+terraform output lockbox_secret_id
+```
+
+Значение из LockBox вставить в `.env` на VM:
+
+```text
+DB_PASSWORD=<значение_из_lockbox>
+```
+
+`.env` не коммитить в git.
+
+## 6. Скачивание image на VM
 
 Если registry требует авторизацию, сначала получить IAM token на машине, где настроен `yc`:
 
@@ -92,10 +131,8 @@ yc iam create-token
 Потом выполнить login на VM, подставив полученный токен:
 
 ```bash
-echo "<IAM_TOKEN>" | docker login \
-  --username iam \
-  --password-stdin \
-  cr.yandex
+echo "<IAM_TOKEN>" | ssh student@<vm_public_ip> \
+  'docker login --username iam --password-stdin cr.yandex'
 ```
 
 Потом:
@@ -104,7 +141,7 @@ echo "<IAM_TOKEN>" | docker login \
 ssh student@<vm_public_ip> 'cd ~/app && docker compose -f compose.cloud.yaml pull'
 ```
 
-## 7. Запустить приложение
+## 7. Запуск приложения
 
 ```bash
 ssh student@<vm_public_ip> 'cd ~/app && docker compose -f compose.cloud.yaml up -d'
@@ -116,7 +153,7 @@ ssh student@<vm_public_ip> 'cd ~/app && docker compose -f compose.cloud.yaml up 
 ssh student@<vm_public_ip> 'cd ~/app && docker compose -f compose.cloud.yaml ps'
 ```
 
-## 8. Проверить приложение
+## 8. Проверка приложения
 
 На VM:
 
@@ -132,7 +169,7 @@ curl http://<vm_public_ip>
 curl http://<vm_public_ip>/requests
 ```
 
-## 9. Обновить файлы приложения на VM
+## 9. Обновление файлов приложения на VM
 
 Если файлы в репозитории изменились:
 
@@ -148,7 +185,7 @@ ssh student@<vm_public_ip> 'cd ~/app && docker compose -f compose.cloud.yaml pul
 ssh student@<vm_public_ip> 'cd ~/app && docker compose -f compose.cloud.yaml up -d'
 ```
 
-## 10. Если web-контейнер падает
+## 10. Troubleshooting
 
 Посмотреть логи:
 
